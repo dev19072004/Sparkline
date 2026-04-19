@@ -63,6 +63,7 @@ Create `/Users/devanshuverma/Desktop/sparkline/server/.env` from `/Users/devansh
 - `DB_NAME`
 - `DB_USER`
 - `DB_PASSWORD`
+- `DB_AUTO_CREATE=false` for Hostinger and other managed environments where the database is created in the control panel first
 - `FRONTEND_URL`
 - `APP_BASE_URL`
 - `JWT_SECRET`

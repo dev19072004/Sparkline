@@ -5,6 +5,16 @@ dotenv.config();
 
 let pool;
 
+const shouldAutoCreateDatabase = () => {
+  const configuredValue = String(process.env.DB_AUTO_CREATE || "").trim().toLowerCase();
+
+  if (configuredValue) {
+    return configuredValue === "true";
+  }
+
+  return process.env.NODE_ENV !== "production";
+};
+
 const baseConfig = {
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT || 3306),
@@ -21,11 +31,13 @@ export const initializePool = async () => {
     throw new Error("DB_NAME is not configured");
   }
 
-  const bootstrapConnection = await mysql.createConnection(baseConfig);
-  await bootstrapConnection.query(
-    `CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\``
-  );
-  await bootstrapConnection.end();
+  if (shouldAutoCreateDatabase()) {
+    const bootstrapConnection = await mysql.createConnection(baseConfig);
+    await bootstrapConnection.query(
+      `CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\``
+    );
+    await bootstrapConnection.end();
+  }
 
   pool = mysql.createPool({
     ...baseConfig,
