@@ -1,23 +1,24 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import BrochureModal from "./components/BrochureModal";
-import HomePage from "./pages/HomePage";
-import ProductsPage from "./pages/ProductsPage";
-import QuotePage from "./pages/QuotePage";
-import CategoryPage from "./pages/CategoryPage";
-import ProductPage from "./pages/ProductPage";
-import AuthPage from "./pages/AuthPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import ServicePage from "./pages/ServicePage";
-import AdminPage from "./pages/AdminPage";
-import BrochurePage from "./pages/BrochurePage";
-import GalleryPage from "./pages/GalleryPage";
-import SparePartsInquiryPage from "./pages/SparePartsInquiryPage";
-import UserQueriesPage from "./pages/UserQueriesPage";
-import NotFoundPage from "./pages/NotFoundPage";
+
+const HomePage = lazy(() => import("./pages/HomePage"));
+const ProductsPage = lazy(() => import("./pages/ProductsPage"));
+const QuotePage = lazy(() => import("./pages/QuotePage"));
+const CategoryPage = lazy(() => import("./pages/CategoryPage"));
+const ProductPage = lazy(() => import("./pages/ProductPage"));
+const AuthPage = lazy(() => import("./pages/AuthPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const ServicePage = lazy(() => import("./pages/ServicePage"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
+const BrochurePage = lazy(() => import("./pages/BrochurePage"));
+const GalleryPage = lazy(() => import("./pages/GalleryPage"));
+const SparePartsInquiryPage = lazy(() => import("./pages/SparePartsInquiryPage"));
+const UserQueriesPage = lazy(() => import("./pages/UserQueriesPage"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 function ScrollManager() {
   const location = useLocation();
@@ -75,27 +76,38 @@ function AppShell() {
       <ScrollManager />
       <Header />
       <main className="site-main">
-      <Routes>
-        <Route
-          path="/"
-          element={<HomePage />}
-        />
-        <Route path="/products" element={<ProductsPage />} />
-        <Route path="/products/:parentSlug" element={<CategoryPage />} />
-        <Route path="/products/:parentSlug/:categorySlug" element={<CategoryPage />} />
-        <Route path="/products/:parentSlug/:categorySlug/:productSlug" element={<ProductPage />} />
-        <Route path="/quote" element={<QuotePage />} />
-        <Route path="/spare-parts-inquiry" element={<SparePartsInquiryPage />} />
-        <Route path="/queries" element={<UserQueriesPage />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/brochures" element={<BrochurePage openBrochureModal={openBrochureModal} />} />
-        <Route path="/gallery" element={<GalleryPage />} />
-        <Route path="/services/:serviceSlug" element={<ServicePage />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/owner" element={<AdminPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+        <Suspense
+          fallback={
+            <section className="section page-hero-section">
+              <div className="container empty-state">Loading page...</div>
+            </section>
+          }
+        >
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/products/:parentSlug" element={<CategoryPage />} />
+            <Route path="/products/:parentSlug/:categorySlug" element={<CategoryPage />} />
+            <Route
+              path="/products/:parentSlug/:categorySlug/:productSlug"
+              element={<ProductPage />}
+            />
+            <Route path="/quote" element={<QuotePage />} />
+            <Route path="/spare-parts-inquiry" element={<SparePartsInquiryPage />} />
+            <Route path="/queries" element={<UserQueriesPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route
+              path="/brochures"
+              element={<BrochurePage openBrochureModal={openBrochureModal} />}
+            />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/services/:serviceSlug" element={<ServicePage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/owner" element={<AdminPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
       </main>
       <Footer />
       <BrochureModal

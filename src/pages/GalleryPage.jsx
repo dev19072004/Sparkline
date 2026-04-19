@@ -85,6 +85,8 @@ function GalleryPage() {
                     <img
                       src={item.mediaPath}
                       alt={item.description || "Sparkline gallery"}
+                      loading="lazy"
+                      decoding="async"
                     />
                   )}
                 </div>

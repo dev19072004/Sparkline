@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import HeroCarousel from "../components/HeroCarousel";
-import { apiFetch } from "../lib/api";
 import { buildCatalogPath } from "../lib/catalog";
+import { getCatalogNavigation } from "../lib/navigation";
 import {
   aboutParagraphs,
   customerLogos,
@@ -15,18 +15,37 @@ import {
 
 function HomePage() {
   const [navigation, setNavigation] = useState([]);
+  const [isNavigationLoading, setIsNavigationLoading] = useState(true);
+  const [navigationError, setNavigationError] = useState("");
 
   useEffect(() => {
+    let isCancelled = false;
+
     const loadNavigation = async () => {
       try {
-        const data = await apiFetch("/products/navigation");
-        setNavigation(data);
+        const data = await getCatalogNavigation();
+
+        if (!isCancelled) {
+          setNavigation(data);
+          setNavigationError("");
+        }
       } catch (error) {
-        console.error("Unable to load home navigation", error.message);
+        if (!isCancelled) {
+          console.error("Unable to load home navigation", error.message);
+          setNavigationError(error.message);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsNavigationLoading(false);
+        }
       }
     };
 
     loadNavigation();
+
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   const machineryCategory = navigation.find((item) => item.slug === "machinery");
@@ -86,6 +105,8 @@ function HomePage() {
                       className="leader-profile-photo"
                       src={leaderProfile.image}
                       alt={leaderProfile.name}
+                      loading="lazy"
+                      decoding="async"
                     />
                   ) : (
                     <>
@@ -173,30 +194,47 @@ function HomePage() {
             </p>
           </div>
 
-          <div className="card-grid three-up home-products-grid">
-            {machineryCategory?.childCategories?.map((category) => (
-              <article className="info-card product-range-card" key={category.slug}>
-                <img src={category.image} alt={category.name} />
-                <div className="info-card-body product-range-body">
-                  <h3>{category.name}</h3>
-                  <p>{category.shortDescription}</p>
-                  <div className="chip-list">
-                    {category.products?.slice(0, 3).map((product) => (
-                      <span className="chip" key={product.slug}>
-                        {product.name}
-                      </span>
-                    ))}
+          {navigationError ? <p className="status-message error">{navigationError}</p> : null}
+
+          {isNavigationLoading ? (
+            <div className="empty-state">Loading product categories...</div>
+          ) : null}
+
+          {!isNavigationLoading && machineryCategory?.childCategories?.length ? (
+            <div className="card-grid three-up home-products-grid">
+              {machineryCategory.childCategories.map((category) => (
+                <article className="info-card product-range-card" key={category.slug}>
+                  <img
+                    src={category.image}
+                    alt={category.name}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <div className="info-card-body product-range-body">
+                    <h3>{category.name}</h3>
+                    <p>{category.shortDescription}</p>
+                    <div className="chip-list">
+                      {category.products?.slice(0, 3).map((product) => (
+                        <span className="chip" key={product.slug}>
+                          {product.name}
+                        </span>
+                      ))}
+                    </div>
+                    <Link
+                      className="btn btn-outline product-range-action"
+                      to={buildCatalogPath("machinery", category.slug)}
+                    >
+                      Explore Category
+                    </Link>
                   </div>
-                  <Link
-                    className="btn btn-outline product-range-action"
-                    to={buildCatalogPath("machinery", category.slug)}
-                  >
-                    Explore Category
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
+                </article>
+              ))}
+            </div>
+          ) : null}
+
+          {!isNavigationLoading && !navigationError && !machineryCategory?.childCategories?.length ? (
+            <div className="empty-state">No product categories are available right now.</div>
+          ) : null}
 
           {sparepartsCategory ? (
             <article className="spareparts-banner">

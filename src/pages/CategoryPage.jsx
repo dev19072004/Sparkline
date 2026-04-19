@@ -88,7 +88,12 @@ function CategoryPage() {
             <div className="card-grid three-up">
               {childCategories.map((childCategory) => (
                 <article className="info-card" key={childCategory.slug}>
-                  <img src={childCategory.image} alt={childCategory.name} />
+                  <img
+                    src={childCategory.image}
+                    alt={childCategory.name}
+                    loading="lazy"
+                    decoding="async"
+                  />
                   <div className="info-card-body">
                     <h3>{childCategory.name}</h3>
                     <p>{childCategory.shortDescription}</p>
@@ -118,7 +123,12 @@ function CategoryPage() {
             <div className="card-grid three-up">
               {products.map((product) => (
                 <article className="info-card" key={product.slug}>
-                  <img src={product.image} alt={product.name} />
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    loading="lazy"
+                    decoding="async"
+                  />
                   <div className="info-card-body">
                     <h3>{product.name}</h3>
                     <p>{product.shortDescription}</p>

@@ -10,7 +10,13 @@ function Footer() {
         <div className="footer-brand-panel">
           <div className="brand-lockup footer-brand-lockup">
             <div>
-              <img src="/images/logo.png" alt="Sparkline logo" className="brand-image" />
+              <img
+                src="/images/logo.png"
+                alt="Sparkline logo"
+                className="brand-image"
+                loading="lazy"
+                decoding="async"
+              />
               <p className="brand-tagline">Reliable construction machinery and spare parts support</p>
             </div>
           </div>

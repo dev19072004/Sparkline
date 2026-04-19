@@ -1,23 +1,42 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { apiFetch } from "../lib/api";
 import { buildCatalogPath } from "../lib/catalog";
+import { getCatalogNavigation } from "../lib/navigation";
 
 function ProductsPage() {
   const [navigation, setNavigation] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
+    let isCancelled = false;
+
     const loadNavigation = async () => {
       try {
-        const data = await apiFetch("/products/navigation");
-        setNavigation(data);
+        const data = await getCatalogNavigation();
+
+        if (!isCancelled) {
+          setNavigation(data);
+          setError("");
+        }
       } catch (error) {
-        console.error("Unable to load products overview", error.message);
+        if (!isCancelled) {
+          console.error("Unable to load products overview", error.message);
+          setError(error.message);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadNavigation();
+
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   return (
@@ -33,31 +52,46 @@ function ProductsPage() {
       </div>
 
       <div className="container section-top-gap">
-        <div className="card-grid two-up">
-          {navigation.map((category) => (
-            <article className="info-card" key={category.slug}>
-              <img src={category.image} alt={category.name} />
-              <div className="info-card-body">
-                <h2>{category.name}</h2>
-                <p>{category.fullDescription}</p>
+        {error ? <p className="status-message error">{error}</p> : null}
 
-                {category.childCategories?.length ? (
-                  <div className="chip-list">
-                    {category.childCategories.map((childCategory) => (
-                      <span className="chip" key={childCategory.slug}>
-                        {childCategory.name}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
+        {isLoading ? <div className="empty-state">Loading product catalog...</div> : null}
 
-                <Link className="btn btn-primary" to={buildCatalogPath(category.slug)}>
-                  Open {category.name}
-                </Link>
-              </div>
-            </article>
-          ))}
-        </div>
+        {!isLoading && navigation.length ? (
+          <div className="card-grid two-up">
+            {navigation.map((category) => (
+              <article className="info-card" key={category.slug}>
+                <img
+                  src={category.image}
+                  alt={category.name}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <div className="info-card-body">
+                  <h2>{category.name}</h2>
+                  <p>{category.fullDescription}</p>
+
+                  {category.childCategories?.length ? (
+                    <div className="chip-list">
+                      {category.childCategories.map((childCategory) => (
+                        <span className="chip" key={childCategory.slug}>
+                          {childCategory.name}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <Link className="btn btn-primary" to={buildCatalogPath(category.slug)}>
+                    Open {category.name}
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : null}
+
+        {!isLoading && !error && !navigation.length ? (
+          <div className="empty-state">No products are available right now.</div>
+        ) : null}
 
         <div className="section section-mini">
           <div className="section-header left-aligned">

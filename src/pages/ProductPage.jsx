@@ -57,7 +57,12 @@ function ProductPage() {
 
         <div className="product-detail-layout">
           <div className="product-visual-panel">
-            <img src={product.image} alt={product.name} />
+            <img
+              src={product.image}
+              alt={product.name}
+              decoding="async"
+              fetchPriority="high"
+            />
           </div>
 
           <div className="product-copy-panel">
@@ -134,7 +139,12 @@ function ProductPage() {
             <div className="card-grid three-up">
               {product.relatedProducts.map((relatedProduct) => (
                 <article className="info-card" key={relatedProduct.slug}>
-                  <img src={relatedProduct.image} alt={relatedProduct.name} />
+                  <img
+                    src={relatedProduct.image}
+                    alt={relatedProduct.name}
+                    loading="lazy"
+                    decoding="async"
+                  />
                   <div className="info-card-body">
                     <h3>{relatedProduct.name}</h3>
                     <p>{relatedProduct.shortDescription}</p>

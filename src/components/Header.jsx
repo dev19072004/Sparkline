@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { FaBars, FaChevronDown, FaEnvelope, FaPhoneAlt, FaTimes } from "react-icons/fa";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
-import { apiFetch } from "../lib/api";
 import { buildAuthRedirectPath } from "../lib/authRedirect";
 import { buildCatalogPath } from "../lib/catalog";
+import { getCatalogNavigation } from "../lib/navigation";
 import { contactDetails } from "../data/siteData";
 
 function Header() {
@@ -13,6 +13,7 @@ function Header() {
   const [isProductsOpen, setIsProductsOpen] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const location = useLocation();
   const { user, logout } = useAuth();
   const machineryCategory = navigation.find((item) => item.slug === "machinery");
   const sparepartsCategory = navigation.find((item) => item.slug === "spareparts");
@@ -20,7 +21,7 @@ function Header() {
   useEffect(() => {
     const loadNavigation = async () => {
       try {
-        const data = await apiFetch("/products/navigation");
+        const data = await getCatalogNavigation();
         setNavigation(data);
       } catch (error) {
         console.error("Unable to load product navigation", error.message);
@@ -40,6 +41,33 @@ function Header() {
     document.addEventListener("mousedown", closeOnOutsideClick);
     return () => document.removeEventListener("mousedown", closeOnOutsideClick);
   }, []);
+
+  useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      setIsMobileOpen(false);
+      setIsProductsOpen(false);
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    document.body.classList.toggle("mobile-nav-open", isMobileOpen);
+
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") {
+        setIsMobileOpen(false);
+        setIsProductsOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.body.classList.remove("mobile-nav-open");
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [isMobileOpen]);
 
   const closeNavigationMenus = () => {
     setIsProductsOpen(false);
@@ -64,7 +92,13 @@ function Header() {
 
       <div className="container header-main">
         <Link className="brand-lockup" to="/">
-          <img src="/images/logo.png" alt="Sparkline logo" className="brand-image" />
+          <img
+            src="/images/logo.png"
+            alt="Sparkline logo"
+            className="brand-image"
+            decoding="async"
+            fetchPriority="high"
+          />
         </Link>
 
         <button
@@ -76,7 +110,26 @@ function Header() {
           {isMobileOpen ? <FaTimes /> : <FaBars />}
         </button>
 
+        <button
+          type="button"
+          className={`mobile-nav-backdrop ${isMobileOpen ? "is-open" : ""}`}
+          aria-label="Close navigation"
+          onClick={closeNavigationMenus}
+        />
+
         <div className={`header-nav-shell ${isMobileOpen ? "is-open" : ""}`}>
+          <div className="mobile-nav-head">
+            <strong>Menu</strong>
+            <button
+              type="button"
+              className="mobile-nav-close"
+              aria-label="Close menu"
+              onClick={closeNavigationMenus}
+            >
+              <FaTimes />
+            </button>
+          </div>
+
           <nav className="header-nav">
             <NavLink to="/" end className="nav-link" onClick={closeNavigationMenus}>
               Home

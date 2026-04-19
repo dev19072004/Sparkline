@@ -2,24 +2,43 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import RequireUserAccount from "../components/RequireUserAccount";
-import { apiFetch } from "../lib/api";
 import { resolveBrochureCategories } from "../data/brochureCatalog";
+import { getCatalogNavigation } from "../lib/navigation";
 
 function BrochurePage({ openBrochureModal }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [navigation, setNavigation] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
+    let isCancelled = false;
+
     const loadNavigation = async () => {
       try {
-        const data = await apiFetch("/products/navigation");
-        setNavigation(data);
+        const data = await getCatalogNavigation();
+
+        if (!isCancelled) {
+          setNavigation(data);
+          setError("");
+        }
       } catch (error) {
-        console.error("Unable to load brochure categories", error.message);
+        if (!isCancelled) {
+          console.error("Unable to load brochure categories", error.message);
+          setError(error.message);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadNavigation();
+
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   const brochureCategories = useMemo(
@@ -49,6 +68,10 @@ function BrochurePage({ openBrochureModal }) {
           title="Login or signup before downloading a brochure"
           message="Brochure requests are now linked to the signed-in account so your enquiry and download history can be tracked correctly."
         >
+          {error ? <p className="status-message error">{error}</p> : null}
+
+          {isLoading ? <div className="empty-state">Loading brochure categories...</div> : null}
+
           <div className="brochure-selector-shell">
             <article className="brochure-selector-card">
               <label className="form-field brochure-selector-field" htmlFor="brochure-category">
@@ -61,6 +84,7 @@ function BrochurePage({ openBrochureModal }) {
 
                     setSearchParams(nextCategorySlug ? { category: nextCategorySlug } : {});
                   }}
+                  disabled={isLoading || !!error}
                 >
                   <option value="">Choose a category</option>
                   {brochureCategories.map((category) => (
