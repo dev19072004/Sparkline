@@ -342,17 +342,23 @@ export const seedStaffAccounts = async (pool) => {
     role: "owner"
   });
 
+  const defaultAdminEmail =
+    process.env.DEFAULT_ADMIN_EMAIL || "devanshuverma72@gmail.com";
+  const defaultAdminPassword =
+    process.env.DEFAULT_ADMIN_PASSWORD || "Dev@1907";
   const shouldSeedDefaultAdmin =
-    String(process.env.SEED_DEFAULT_ADMIN || "false").trim().toLowerCase() === "true";
+    String(
+      process.env.SEED_DEFAULT_ADMIN ||
+        (defaultAdminEmail && defaultAdminPassword ? "true" : "false")
+    )
+      .trim()
+      .toLowerCase() === "true";
 
-  if (!shouldSeedDefaultAdmin) {
+  if (!defaultAdminEmail || !defaultAdminPassword) {
     return;
   }
 
-  const defaultAdminEmail = process.env.DEFAULT_ADMIN_EMAIL || "";
-  const defaultAdminPassword = process.env.DEFAULT_ADMIN_PASSWORD || "";
-
-  if (!defaultAdminEmail || !defaultAdminPassword) {
+  if (!shouldSeedDefaultAdmin) {
     return;
   }
 
@@ -365,10 +371,10 @@ export const seedStaffAccounts = async (pool) => {
   }
 
   await upsertStaffAccount(pool, {
-    fullName: process.env.DEFAULT_ADMIN_NAME || "Spares Admin",
+    fullName: process.env.DEFAULT_ADMIN_NAME || "Devanshu Verma",
     email: defaultAdminEmail,
     password: defaultAdminPassword,
-    phone: process.env.DEFAULT_ADMIN_PHONE || "",
+    phone: process.env.DEFAULT_ADMIN_PHONE || "9054606803",
     companyName: process.env.DEFAULT_ADMIN_COMPANY || "Sparkline",
     designation: process.env.DEFAULT_ADMIN_DESIGNATION || "Admin",
     role: "admin"

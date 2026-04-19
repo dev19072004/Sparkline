@@ -31,7 +31,7 @@ function Footer() {
           <h3>Quick Links</h3>
           <div className="footer-link-list">
             <Link to="/">Home</Link>
-            <Link to="/products">Products</Link>
+            <Link to="/#catalog">Products</Link>
             <Link to="/quote">Request Quote</Link>
             <Link to="/auth">Login / Signup</Link>
           </div>

@@ -1,12 +1,11 @@
 import { Suspense, lazy, useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route, useLocation } from "react-router-dom";
 
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import BrochureModal from "./components/BrochureModal";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
-const ProductsPage = lazy(() => import("./pages/ProductsPage"));
 const QuotePage = lazy(() => import("./pages/QuotePage"));
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const ProductPage = lazy(() => import("./pages/ProductPage"));
@@ -85,7 +84,7 @@ function AppShell() {
         >
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/products" element={<Navigate to="/#catalog" replace />} />
             <Route path="/products/:parentSlug" element={<CategoryPage />} />
             <Route path="/products/:parentSlug/:categorySlug" element={<CategoryPage />} />
             <Route

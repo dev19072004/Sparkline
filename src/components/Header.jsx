@@ -74,6 +74,11 @@ function Header() {
     setIsMobileOpen(false);
   };
 
+  const handleLogout = async () => {
+    closeNavigationMenus();
+    await logout();
+  };
+
   return (
     <header className="site-header">
       <div className="header-topbar">
@@ -148,20 +153,14 @@ function Header() {
               </button>
 
               {isProductsOpen ? (
-                <div className="products-mega-menu">
+                <div
+                  className={`products-mega-menu ${isMobileOpen ? "is-mobile-drawer" : ""}`}
+                >
                   <div className="products-mega-head">
                     <div>
                       <p className="mega-eyebrow">Catalog</p>
                       <h3>Explore Machinery and Spare Parts</h3>
                     </div>
-
-                    <Link
-                      className="btn btn-outline btn-small"
-                      to="/products"
-                      onClick={closeNavigationMenus}
-                    >
-                      View All Products
-                    </Link>
                   </div>
 
                   {machineryCategory ? (
@@ -259,7 +258,7 @@ function Header() {
                   <span>{user.fullName}</span>
                   <small>{user.role}</small>
                 </div>
-                <button type="button" className="btn btn-ghost" onClick={logout}>
+                <button type="button" className="btn btn-ghost" onClick={handleLogout}>
                   Logout
                 </button>
               </>

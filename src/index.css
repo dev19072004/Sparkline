@@ -20,7 +20,7 @@
   --radius-lg: 28px;
   --radius-md: 20px;
   --radius-sm: 14px;
-  --container-width: min(1440px, calc(100vw - 2.5rem));
+  --container-width: min(1440px, calc(100% - 2.5rem));
   --header-total-height: 8.55rem;
 }
 
@@ -29,8 +29,11 @@
 }
 
 html {
+  width: 100%;
+  max-width: 100%;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -40,11 +43,20 @@ body {
     radial-gradient(circle at top right, rgba(228, 184, 77, 0.12), transparent 22%),
     linear-gradient(180deg, #fbf8f1 0%, #f4ede1 100%);
   color: var(--ink);
-  overflow-x: clip;
+  width: 100%;
+  max-width: 100%;
+  position: relative;
+  overflow-x: hidden;
 }
 
 body.mobile-nav-open {
   overflow: hidden;
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 img,
@@ -67,20 +79,28 @@ textarea {
 
 .container {
   width: var(--container-width);
+  max-width: 100%;
   margin: 0 auto;
 }
 
 .site-main {
   min-height: 65vh;
-  overflow-x: clip;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .page-stack {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .section {
+  width: 100%;
+  max-width: 100%;
   padding: 5.5rem 0;
 }
 
@@ -334,7 +354,8 @@ textarea {
 .site-header {
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 80;
+  isolation: isolate;
   border-bottom: 1px solid rgba(8, 22, 36, 0.08);
   background: rgba(252, 248, 241, 0.96);
   backdrop-filter: blur(18px);
@@ -1192,8 +1213,9 @@ textarea {
 }
 
 .service-marquee-full {
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
   border-right: none;
   border-left: none;
   border-radius: 0;
@@ -1337,8 +1359,9 @@ textarea {
 }
 
 .customer-marquee-full {
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
   border-left: none;
   border-right: none;
 }
@@ -2486,7 +2509,7 @@ textarea {
     display: block;
     position: fixed;
     inset: 0;
-    z-index: 38;
+    z-index: 81;
     border: none;
     background: rgba(8, 22, 36, 0.48);
     opacity: 0;
@@ -2504,9 +2527,9 @@ textarea {
     top: 0;
     right: 0;
     bottom: 0;
-    z-index: 41;
+    z-index: 82;
     display: flex;
-    width: min(24rem, calc(100vw - 2.25rem));
+    width: min(28rem, 100vw);
     max-width: 100%;
     flex-direction: column;
     align-items: stretch;
@@ -2563,6 +2586,10 @@ textarea {
     gap: 1rem;
   }
 
+  .products-dropdown {
+    width: 100%;
+  }
+
   .nav-link,
   .nav-link-button {
     width: 100%;
@@ -2581,6 +2608,12 @@ textarea {
     transform: none;
     width: 100%;
     margin-top: 0.35rem;
+    padding: 1rem 0 0;
+    border: none;
+    border-top: 1px solid rgba(16, 37, 58, 0.08);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   .products-mega-grid {
@@ -2683,7 +2716,7 @@ textarea {
 
 @media (max-width: 720px) {
   :root {
-    --container-width: calc(100vw - 1rem);
+    --container-width: calc(100% - 1rem);
     --header-total-height: 4.95rem;
   }
 
@@ -2711,7 +2744,7 @@ textarea {
   }
 
   .header-nav-shell {
-    width: min(22rem, calc(100vw - 1.1rem));
+    width: 100vw;
     padding: 1rem 0.9rem 1.1rem;
   }
 
@@ -2873,11 +2906,23 @@ textarea {
   .service-card {
     width: min(18rem, calc(100vw - 2rem));
   }
+
+  .products-mega-head {
+    margin-bottom: 0.95rem;
+  }
+
+  .products-mega-head h3 {
+    font-size: 1.02rem;
+  }
+
+  .mega-category-card {
+    padding: 0.9rem;
+  }
 }
 
 @media (max-width: 420px) {
   :root {
-    --container-width: calc(100vw - 0.85rem);
+    --container-width: calc(100% - 0.85rem);
     --header-total-height: 4.7rem;
   }
 
@@ -2895,7 +2940,7 @@ textarea {
   }
 
   .header-nav-shell {
-    width: min(100vw - 0.6rem, 21rem);
+    width: 100vw;
   }
 
   .hero-carousel-shell {

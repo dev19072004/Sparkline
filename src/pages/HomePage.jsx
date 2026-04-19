@@ -184,7 +184,7 @@ function HomePage() {
         </div>
       </section>
 
-      <section className="section surface-section home-products-section">
+      <section className="section surface-section home-products-section" id="catalog">
         <div className="container">
           <div className="section-header">
             <p className="section-eyebrow">Product Range</p>
