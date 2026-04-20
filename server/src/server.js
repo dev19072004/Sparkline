@@ -8,7 +8,7 @@ import {
   seedStaffAccounts
 } from "./services/databaseService.js";
 
-const PORT = process.env.PORT || 5050;
+const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || "0.0.0.0";
 const DATABASE_RETRY_DELAY_MS = 15000;
 
