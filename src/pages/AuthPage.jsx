@@ -271,14 +271,6 @@ function AuthPage() {
             </button>
           </div>
 
-          <div className="auth-intro">
-            <p className="section-eyebrow">Access</p>
-            <h1>One account flow for customers and admin users</h1>
-            <p>
-              Customer accounts are available through signup. Admin access appears in the header automatically when the logged-in account has admin credentials.
-            </p>
-          </div>
-
           {status.message ? (
             <p className={`status-message ${status.type}`}>{status.message}</p>
           ) : null}
