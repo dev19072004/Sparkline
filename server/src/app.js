@@ -163,6 +163,8 @@ app.use((req, res, next) => {
   });
 });
 
+app.get("/sitemap.xml", getSitemapXml);
+
 if (fs.existsSync(publicDirectoryPath)) {
   app.use(express.static(publicDirectoryPath));
 }
@@ -177,8 +179,6 @@ app.get("/", (_req, res) => {
 
   res.json({ message: "Sparkline API is running" });
 });
-
-app.get("/sitemap.xml", getSitemapXml);
 
 app.use("/api/products", productRoutes);
 app.use("/api/quotes", quoteRoutes);

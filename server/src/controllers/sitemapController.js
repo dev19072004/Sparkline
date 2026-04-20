@@ -43,7 +43,7 @@ const getBaseUrl = (req) => {
     .trim();
   const host = forwardedHost || String(req.header("host") || "").trim();
 
-  return normalizeBaseUrl(host ? `${protocol}://${host}` : "http://localhost:5050");
+  return normalizeBaseUrl(host ? `${protocol}://${host}` : "http://localhost:3000");
 };
 
 const formatLastModified = (value) => {
