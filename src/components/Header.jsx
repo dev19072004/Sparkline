@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { FaBars, FaChevronDown, FaEnvelope, FaPhoneAlt, FaTimes } from "react-icons/fa";
+import { createPortal } from "react-dom";
 import { Link, NavLink, useLocation } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
@@ -79,206 +80,231 @@ function Header() {
     await logout();
   };
 
-  return (
-    <header className="site-header">
-      <div className="header-topbar">
-        <div className="container header-topbar-inner">
-          <p>Construction Machinery, Spare Parts, Support, and Reliable Project Delivery</p>
-          <div className="header-contact-list">
-            <span>
-              <FaPhoneAlt /> {contactDetails.phone}
-            </span>
-            <span>
-              <FaEnvelope /> {contactDetails.email}
-            </span>
-          </div>
-        </div>
-      </div>
+  const renderProductsMenu = (isMobile = false) => (
+    <div className={`products-dropdown ${isMobile ? "mobile-products-dropdown" : ""}`} ref={isMobile ? null : dropdownRef}>
+      <button
+        type="button"
+        className="nav-link nav-link-button"
+        onClick={() => setIsProductsOpen((currentState) => !currentState)}
+      >
+        Products <FaChevronDown />
+      </button>
 
-      <div className="container header-main">
-        <Link className="brand-lockup" to="/">
-          <img
-            src="/images/logo.png"
-            alt="Sparkline logo"
-            className="brand-image"
-            decoding="async"
-            fetchPriority="high"
-          />
-        </Link>
-
-        <button
-          className="mobile-menu-toggle"
-          type="button"
-          onClick={() => setIsMobileOpen((currentState) => !currentState)}
-          aria-label="Toggle navigation"
-        >
-          {isMobileOpen ? <FaTimes /> : <FaBars />}
-        </button>
-
-        <button
-          type="button"
-          className={`mobile-nav-backdrop ${isMobileOpen ? "is-open" : ""}`}
-          aria-label="Close navigation"
-          onClick={closeNavigationMenus}
-        />
-
-        <div className={`header-nav-shell ${isMobileOpen ? "is-open" : ""}`}>
-          <div className="mobile-nav-head">
-            <strong>Menu</strong>
-            <button
-              type="button"
-              className="mobile-nav-close"
-              aria-label="Close menu"
-              onClick={closeNavigationMenus}
-            >
-              <FaTimes />
-            </button>
+      {isProductsOpen ? (
+        <div className={`products-mega-menu ${isMobile ? "is-mobile-drawer" : ""}`}>
+          <div className="products-mega-head">
+            <div>
+              <p className="mega-eyebrow">Catalog</p>
+              <h3>Explore Machinery and Spare Parts</h3>
+            </div>
           </div>
 
-          <nav className="header-nav">
-            <NavLink to="/" end className="nav-link" onClick={closeNavigationMenus}>
-              Home
-            </NavLink>
-            <NavLink to="/gallery" className="nav-link" onClick={closeNavigationMenus}>
-              Gallery
-            </NavLink>
+          {machineryCategory ? (
+            <div className="products-mega-grid">
+              {machineryCategory.childCategories?.map((childCategory) => (
+                <div className="mega-category-card" key={childCategory.slug}>
+                  <Link
+                    className="mega-child-link"
+                    to={buildCatalogPath(machineryCategory.slug, childCategory.slug)}
+                    onClick={closeNavigationMenus}
+                  >
+                    {childCategory.name}
+                  </Link>
 
-            <div className="products-dropdown" ref={dropdownRef}>
-              <button
-                type="button"
-                className="nav-link nav-link-button"
-                onClick={() => setIsProductsOpen((currentState) => !currentState)}
-              >
-                Products <FaChevronDown />
-              </button>
-
-              {isProductsOpen ? (
-                <div
-                  className={`products-mega-menu ${isMobileOpen ? "is-mobile-drawer" : ""}`}
-                >
-                  <div className="products-mega-head">
-                    <div>
-                      <p className="mega-eyebrow">Catalog</p>
-                      <h3>Explore Machinery and Spare Parts</h3>
-                    </div>
-                  </div>
-
-                  {machineryCategory ? (
-                    <div className="products-mega-grid">
-                      {machineryCategory.childCategories?.map((childCategory) => (
-                        <div className="mega-category-card" key={childCategory.slug}>
-                          <Link
-                            className="mega-child-link"
-                            to={buildCatalogPath(machineryCategory.slug, childCategory.slug)}
-                            onClick={closeNavigationMenus}
-                          >
-                            {childCategory.name}
-                          </Link>
-
-                          <div className="mega-product-links compact">
-                            {childCategory.products?.map((product) => (
-                              <Link
-                                key={product.slug}
-                                className="mega-product-pill compact"
-                                to={buildCatalogPath(
-                                  machineryCategory.slug,
-                                  childCategory.slug,
-                                  product.slug
-                                )}
-                                onClick={closeNavigationMenus}
-                              >
-                                {product.name}
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-
-                  {sparepartsCategory ? (
-                    <div className="mega-spareparts-row">
-                      <div>
-                        <p className="mega-row-label">Support Category</p>
-                        <h4>{sparepartsCategory.name}</h4>
-                        <p>{sparepartsCategory.shortDescription}</p>
-                      </div>
+                  <div className="mega-product-links compact">
+                    {childCategory.products?.map((product) => (
                       <Link
-                        className="btn btn-outline btn-small"
-                        to={buildCatalogPath(sparepartsCategory.slug)}
+                        key={product.slug}
+                        className="mega-product-pill compact"
+                        to={buildCatalogPath(
+                          machineryCategory.slug,
+                          childCategory.slug,
+                          product.slug
+                        )}
                         onClick={closeNavigationMenus}
                       >
-                        Open Spareparts
+                        {product.name}
                       </Link>
-                    </div>
-                  ) : null}
+                    ))}
+                  </div>
                 </div>
-              ) : null}
+              ))}
             </div>
+          ) : null}
 
-            <a href="/#about" className="nav-link" onClick={closeNavigationMenus}>
-              About
-            </a>
-            <a href="/#services" className="nav-link" onClick={closeNavigationMenus}>
-              Services
-            </a>
-            <NavLink
-              to={user ? "/quote" : buildAuthRedirectPath("/quote")}
-              className="nav-link"
-              onClick={closeNavigationMenus}
-            >
-              Quote
-            </NavLink>
-            <a href="/#contact" className="nav-link" onClick={closeNavigationMenus}>
-              Contact
-            </a>
-            <NavLink
-              to={user ? "/queries" : buildAuthRedirectPath("/queries")}
-              className="nav-link"
-              onClick={closeNavigationMenus}
-            >
-              Queries
-            </NavLink>
-            {["admin", "owner"].includes(user?.role || "") ? (
-              <NavLink to="/admin" className="nav-link" onClick={closeNavigationMenus}>
-                Admin
-              </NavLink>
-            ) : null}
-            {user?.role === "owner" ? (
-              <NavLink to="/owner" className="nav-link" onClick={closeNavigationMenus}>
-                Owner
-              </NavLink>
-            ) : null}
-          </nav>
-
-          <div className="header-actions">
-            {user ? (
-              <>
-                <div className="user-badge">
-                  <span>{user.fullName}</span>
-                  <small>{user.role}</small>
-                </div>
-                <button type="button" className="btn btn-ghost" onClick={handleLogout}>
-                  Logout
-                </button>
-              </>
-            ) : (
-              <Link className="btn btn-outline" to="/auth" onClick={closeNavigationMenus}>
-                Login / Signup
+          {sparepartsCategory ? (
+            <div className="mega-spareparts-row">
+              <div>
+                <p className="mega-row-label">Support Category</p>
+                <h4>{sparepartsCategory.name}</h4>
+                <p>{sparepartsCategory.shortDescription}</p>
+              </div>
+              <Link
+                className="btn btn-outline btn-small"
+                to={buildCatalogPath(sparepartsCategory.slug)}
+                onClick={closeNavigationMenus}
+              >
+                Open Spareparts
               </Link>
-            )}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
 
-            <Link
-              to={user ? "/quote" : buildAuthRedirectPath("/quote")}
-              className="btn btn-primary"
+  const renderNavigationLinks = (isMobile = false) => (
+    <>
+      <NavLink to="/" end className="nav-link" onClick={closeNavigationMenus}>
+        Home
+      </NavLink>
+      <NavLink to="/gallery" className="nav-link" onClick={closeNavigationMenus}>
+        Gallery
+      </NavLink>
+
+      {renderProductsMenu(isMobile)}
+
+      <a href="/#about" className="nav-link" onClick={closeNavigationMenus}>
+        About
+      </a>
+      <a href="/#services" className="nav-link" onClick={closeNavigationMenus}>
+        Services
+      </a>
+      <NavLink
+        to={user ? "/quote" : buildAuthRedirectPath("/quote")}
+        className="nav-link"
+        onClick={closeNavigationMenus}
+      >
+        Quote
+      </NavLink>
+      <a href="/#contact" className="nav-link" onClick={closeNavigationMenus}>
+        Contact
+      </a>
+      <NavLink
+        to={user ? "/queries" : buildAuthRedirectPath("/queries")}
+        className="nav-link"
+        onClick={closeNavigationMenus}
+      >
+        Queries
+      </NavLink>
+      {["admin", "owner"].includes(user?.role || "") ? (
+        <NavLink to="/admin" className="nav-link" onClick={closeNavigationMenus}>
+          Admin
+        </NavLink>
+      ) : null}
+      {user?.role === "owner" ? (
+        <NavLink to="/owner" className="nav-link" onClick={closeNavigationMenus}>
+          Owner
+        </NavLink>
+      ) : null}
+    </>
+  );
+
+  const renderHeaderActions = () => (
+    <>
+      {user ? (
+        <>
+          <div className="user-badge">
+            <span>{user.fullName}</span>
+            <small>{user.role}</small>
+          </div>
+          <button type="button" className="btn btn-ghost" onClick={handleLogout}>
+            Logout
+          </button>
+        </>
+      ) : (
+        <Link className="btn btn-outline" to="/auth" onClick={closeNavigationMenus}>
+          Login / Signup
+        </Link>
+      )}
+
+      <Link
+        to={user ? "/quote" : buildAuthRedirectPath("/quote")}
+        className="btn btn-primary"
+        onClick={closeNavigationMenus}
+      >
+        Get Quote
+      </Link>
+    </>
+  );
+
+  const mobileNavigationOverlay =
+    typeof document !== "undefined"
+      ? createPortal(
+          <>
+            <button
+              type="button"
+              className={`mobile-nav-backdrop ${isMobileOpen ? "is-open" : ""}`}
+              aria-label="Close navigation"
               onClick={closeNavigationMenus}
-            >
-              Get Quote
-            </Link>
+            />
+
+            <div className={`header-nav-shell mobile-nav-shell ${isMobileOpen ? "is-open" : ""}`}>
+              <div className="mobile-nav-head">
+                <strong>Menu</strong>
+                <button
+                  type="button"
+                  className="mobile-nav-close"
+                  aria-label="Close menu"
+                  onClick={closeNavigationMenus}
+                >
+                  <FaTimes />
+                </button>
+              </div>
+
+              <nav className="header-nav">{renderNavigationLinks(true)}</nav>
+              <div className="header-actions">{renderHeaderActions()}</div>
+            </div>
+          </>,
+          document.body
+        )
+      : null;
+
+  return (
+    <>
+      <header className="site-header">
+        <div className="header-topbar">
+          <div className="container header-topbar-inner">
+            <p>Construction Machinery, Spare Parts, Support, and Reliable Project Delivery</p>
+            <div className="header-contact-list">
+              <span>
+                <FaPhoneAlt /> {contactDetails.phone}
+              </span>
+              <span>
+                <FaEnvelope /> {contactDetails.email}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-    </header>
+
+        <div className="container header-main">
+          <Link className="brand-lockup" to="/">
+            <img
+              src="/images/logo.png"
+              alt="Sparkline logo"
+              className="brand-image"
+              decoding="async"
+              fetchPriority="high"
+            />
+          </Link>
+
+          <button
+            className="mobile-menu-toggle"
+            type="button"
+            onClick={() => setIsMobileOpen((currentState) => !currentState)}
+            aria-label="Toggle navigation"
+          >
+            {isMobileOpen ? <FaTimes /> : <FaBars />}
+          </button>
+
+          <div className="header-nav-shell desktop-nav-shell">
+            <nav className="header-nav">{renderNavigationLinks(false)}</nav>
+            <div className="header-actions">{renderHeaderActions()}</div>
+          </div>
+        </div>
+      </header>
+      {mobileNavigationOverlay}
+    </>
   );
 }
 

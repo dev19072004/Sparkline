@@ -1,4 +1,5 @@
 import { apiFetch } from "./api";
+import { catalogNavigationFallback } from "../data/catalogFallback";
 
 let navigationCache = null;
 let navigationPromise = null;
@@ -15,8 +16,10 @@ export const getCatalogNavigation = async () => {
         return response;
       })
       .catch((error) => {
+        console.error("Falling back to bundled catalog navigation:", error.message);
+        navigationCache = catalogNavigationFallback;
         navigationPromise = null;
-        throw error;
+        return navigationCache;
       });
   }
 

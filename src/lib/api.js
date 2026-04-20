@@ -40,14 +40,21 @@ export const apiFetch = async (path, options = {}) => {
   });
 
   const rawBody = await response.text();
+  const looksLikeHtml =
+    typeof rawBody === "string" &&
+    /^(\s*<!doctype html|\s*<html\b)/i.test(rawBody);
   let payload = null;
 
-  if (rawBody) {
+  if (rawBody && !looksLikeHtml) {
     try {
       payload = JSON.parse(rawBody);
     } catch {
       payload = rawBody;
     }
+  }
+
+  if (looksLikeHtml) {
+    throw new Error("Unexpected server response. Please try again.");
   }
 
   if (!response.ok) {

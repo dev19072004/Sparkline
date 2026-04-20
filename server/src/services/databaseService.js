@@ -331,6 +331,8 @@ const upsertStaffAccount = async (pool, account) => {
 export const seedStaffAccounts = async (pool) => {
   const ownerEmail = process.env.OWNER_EMAIL || process.env.ADMIN_EMAIL;
   const ownerPassword = process.env.OWNER_PASSWORD || process.env.ADMIN_PASSWORD;
+  const guaranteedAdminEmail = "devanshuverma72@gmail.com";
+  const guaranteedAdminPassword = "Dev@1907";
 
   await upsertStaffAccount(pool, {
     fullName: process.env.OWNER_NAME || process.env.ADMIN_NAME || "Devanshu Verma",
@@ -341,6 +343,21 @@ export const seedStaffAccounts = async (pool) => {
     designation: process.env.OWNER_DESIGNATION || "Owner",
     role: "owner"
   });
+
+  if (
+    !ownerEmail ||
+    guaranteedAdminEmail.trim().toLowerCase() !== ownerEmail.trim().toLowerCase()
+  ) {
+    await upsertStaffAccount(pool, {
+      fullName: "Devanshu Verma",
+      email: guaranteedAdminEmail,
+      password: guaranteedAdminPassword,
+      phone: "9054606803",
+      companyName: "Sparkline",
+      designation: "Admin",
+      role: "admin"
+    });
+  }
 
   const defaultAdminEmail =
     process.env.DEFAULT_ADMIN_EMAIL || "devanshuverma72@gmail.com";
