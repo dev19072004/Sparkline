@@ -90,6 +90,9 @@ const isAllowedOrigin = (origin, requestHost = "") => {
   return false;
 };
 
+const requiresDatabase = (requestPath = "") =>
+  requestPath === "/sitemap.xml" || requestPath.startsWith("/api/");
+
 app.use(
   cors((req, callback) => {
     const requestOrigin = req.header("Origin") || "";
@@ -106,6 +109,59 @@ app.use(
 );
 app.use(express.json({ limit: "200mb" }));
 app.use(optionalAuth);
+
+app.get("/healthz", (_req, res) => {
+  const startupState = app.locals.startupState || {};
+
+  if (startupState.databaseReady) {
+    res.status(200).json({
+      status: "ok",
+      databaseReady: true,
+      lastSuccessAt: startupState.lastSuccessAt || null
+    });
+    return;
+  }
+
+  res.status(503).json({
+    status: "starting",
+    databaseReady: false,
+    isBootstrapping: Boolean(startupState.isBootstrapping),
+    lastAttemptAt: startupState.lastAttemptAt || null,
+    message: startupState.startupError || "Database initialization is in progress"
+  });
+});
+
+app.use((req, res, next) => {
+  if (!requiresDatabase(req.path)) {
+    next();
+    return;
+  }
+
+  const startupState = app.locals.startupState || {};
+
+  if (startupState.databaseReady) {
+    next();
+    return;
+  }
+
+  const message =
+    startupState.startupError ||
+    "Server is starting. Please try again in a moment.";
+
+  if (req.path === "/sitemap.xml") {
+    res
+      .status(503)
+      .type("text/plain; charset=utf-8")
+      .send(message);
+    return;
+  }
+
+  res.status(503).json({
+    message,
+    status: "starting",
+    databaseReady: false
+  });
+});
 
 if (fs.existsSync(publicDirectoryPath)) {
   app.use(express.static(publicDirectoryPath));
