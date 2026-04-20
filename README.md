@@ -78,7 +78,7 @@ Create `/Users/devanshuverma/Desktop/sparkline/server/.env` from `/Users/devansh
 To wipe inquiry/admin/demo activity while keeping categories, products, specifications, and the owner account:
 
 ```bash
-npm --prefix server run reset:data
+npm run reset:data
 ```
 
 This clears quote enquiries, brochure leads, gallery items, audit logs, admin tasks, sessions, password reset tokens, spare-parts inventory, and all non-owner users.
@@ -165,6 +165,7 @@ Important deployment behavior:
 - Static media in `/public` is served by the backend.
 - `robots.txt` is served from `/public/robots.txt`.
 - `sitemap.xml` is generated dynamically from the live database.
+- Hostinger only needs one root install now. There is no nested `server` package install anymore.
 - Catalog/category/product data is seeded automatically if the database is empty.
 - Default demo admin creation is disabled unless `SEED_DEFAULT_ADMIN=true` is explicitly set.
 

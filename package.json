@@ -5,16 +5,20 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:server": "npm --prefix server run dev",
+    "dev:server": "nodemon server/src/server.js",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "npm --prefix server run start",
-    "postinstall": "npm --prefix server install"
+    "start": "node server/src/server.js",
+    "reset:data": "node server/scripts/resetDemoData.js"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^6.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^5.1.0",
     "framer-motion": "^12.38.0",
+    "mysql2": "^3.20.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-icons": "^5.6.0",
@@ -28,6 +32,7 @@
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
-    "globals": "^17.4.0"
+    "globals": "^17.4.0",
+    "nodemon": "^3.1.14"
   }
 }
