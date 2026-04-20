@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+import CatalogEntryCard from "../components/CatalogEntryCard";
 import HeroCarousel from "../components/HeroCarousel";
 import { buildCatalogPath } from "../lib/catalog";
-import { getCatalogNavigation } from "../lib/navigation";
+import useCatalogNavigation from "../hooks/useCatalogNavigation";
 import {
   aboutParagraphs,
   customerLogos,
@@ -14,39 +14,11 @@ import {
 } from "../data/siteData";
 
 function HomePage() {
-  const [navigation, setNavigation] = useState([]);
-  const [isNavigationLoading, setIsNavigationLoading] = useState(true);
-  const [navigationError, setNavigationError] = useState("");
-
-  useEffect(() => {
-    let isCancelled = false;
-
-    const loadNavigation = async () => {
-      try {
-        const data = await getCatalogNavigation();
-
-        if (!isCancelled) {
-          setNavigation(data);
-          setNavigationError("");
-        }
-      } catch (error) {
-        if (!isCancelled) {
-          console.error("Unable to load home navigation", error.message);
-          setNavigationError(error.message);
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsNavigationLoading(false);
-        }
-      }
-    };
-
-    loadNavigation();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
+  const {
+    navigation,
+    isLoading: isNavigationLoading,
+    error: navigationError
+  } = useCatalogNavigation();
 
   const machineryCategory = navigation.find((item) => item.slug === "machinery");
   const sparepartsCategory = navigation.find((item) => item.slug === "spareparts");
@@ -203,31 +175,21 @@ function HomePage() {
           {!isNavigationLoading && machineryCategory?.childCategories?.length ? (
             <div className="card-grid three-up home-products-grid">
               {machineryCategory.childCategories.map((category) => (
-                <article className="info-card product-range-card" key={category.slug}>
-                  <img
-                    src={category.image}
-                    alt={category.name}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  <div className="info-card-body product-range-body">
-                    <h3>{category.name}</h3>
-                    <p>{category.shortDescription}</p>
-                    <div className="chip-list">
-                      {category.products?.slice(0, 3).map((product) => (
-                        <span className="chip" key={product.slug}>
-                          {product.name}
-                        </span>
-                      ))}
-                    </div>
-                    <Link
-                      className="btn btn-outline product-range-action"
-                      to={buildCatalogPath("machinery", category.slug)}
-                    >
-                      Explore Category
-                    </Link>
-                  </div>
-                </article>
+                <CatalogEntryCard
+                  key={category.slug}
+                  entry={category}
+                  chips={(category.products || []).slice(0, 3).map((product) => ({
+                    key: product.slug,
+                    label: product.name
+                  }))}
+                  actions={[
+                    {
+                      to: buildCatalogPath("machinery", category.slug),
+                      label: "Explore Category",
+                      className: "btn btn-outline product-range-action"
+                    }
+                  ]}
+                />
               ))}
             </div>
           ) : null}

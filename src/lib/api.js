@@ -23,9 +23,16 @@ export const clearStoredAuthToken = () => {
 export const apiFetch = async (path, options = {}) => {
   const headers = new Headers(options.headers || {});
   const hasBody = options.body !== undefined;
+  const method = String(options.method || "GET").toUpperCase();
+  const isReadRequest = method === "GET" || method === "HEAD";
 
   if (hasBody && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
+  }
+
+  if (isReadRequest) {
+    headers.set("Cache-Control", "no-cache, no-store, max-age=0");
+    headers.set("Pragma", "no-cache");
   }
 
   const token = getStoredAuthToken();
@@ -36,6 +43,8 @@ export const apiFetch = async (path, options = {}) => {
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
+    method,
+    cache: options.cache ?? (isReadRequest ? "no-store" : options.cache),
     headers
   });
 

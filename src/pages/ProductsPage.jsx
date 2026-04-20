@@ -1,43 +1,9 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-
+import CatalogEntryCard from "../components/CatalogEntryCard";
 import { buildCatalogPath } from "../lib/catalog";
-import { getCatalogNavigation } from "../lib/navigation";
+import useCatalogNavigation from "../hooks/useCatalogNavigation";
 
 function ProductsPage() {
-  const [navigation, setNavigation] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    let isCancelled = false;
-
-    const loadNavigation = async () => {
-      try {
-        const data = await getCatalogNavigation();
-
-        if (!isCancelled) {
-          setNavigation(data);
-          setError("");
-        }
-      } catch (error) {
-        if (!isCancelled) {
-          console.error("Unable to load products overview", error.message);
-          setError(error.message);
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadNavigation();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
+  const { navigation, isLoading, error } = useCatalogNavigation();
 
   return (
     <section className="section page-hero-section">
@@ -59,32 +25,23 @@ function ProductsPage() {
         {!isLoading && navigation.length ? (
           <div className="card-grid two-up">
             {navigation.map((category) => (
-              <article className="info-card" key={category.slug}>
-                <img
-                  src={category.image}
-                  alt={category.name}
-                  loading="lazy"
-                  decoding="async"
-                />
-                <div className="info-card-body">
-                  <h2>{category.name}</h2>
-                  <p>{category.fullDescription}</p>
-
-                  {category.childCategories?.length ? (
-                    <div className="chip-list">
-                      {category.childCategories.map((childCategory) => (
-                        <span className="chip" key={childCategory.slug}>
-                          {childCategory.name}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-
-                  <Link className="btn btn-primary" to={buildCatalogPath(category.slug)}>
-                    Open {category.name}
-                  </Link>
-                </div>
-              </article>
+              <CatalogEntryCard
+                key={category.slug}
+                entry={category}
+                headingTag="h2"
+                description={category.fullDescription || category.shortDescription}
+                chips={(category.childCategories || []).map((childCategory) => ({
+                  key: childCategory.slug,
+                  label: childCategory.name
+                }))}
+                actions={[
+                  {
+                    to: buildCatalogPath(category.slug),
+                    label: `Open ${category.name}`,
+                    className: "btn btn-primary"
+                  }
+                ]}
+              />
             ))}
           </div>
         ) : null}

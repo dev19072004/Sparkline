@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
+import CatalogEntryCard from "../components/CatalogEntryCard";
 import { apiFetch } from "../lib/api";
 import {
   buildCategoryPathFromBreadcrumbs,
@@ -10,6 +11,7 @@ import {
 function CategoryPage() {
   const { parentSlug, categorySlug } = useParams();
   const resolvedSlug = categorySlug || parentSlug;
+  const isMountedRef = useRef(true);
 
   const [categoryState, setCategoryState] = useState({
     category: null,
@@ -17,27 +19,94 @@ function CategoryPage() {
     childCategories: [],
     products: []
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const loadCategory = useCallback(
+    async ({ isBackground = false } = {}) => {
+      if (!isBackground) {
+        setIsLoading(true);
+      }
+
+      try {
+        const response = await apiFetch(`/products/categories/${resolvedSlug}`, {
+          cache: "no-store"
+        });
+
+        if (!isMountedRef.current) {
+          return null;
+        }
+
+        setCategoryState(response);
+        setError("");
+        return response;
+      } catch (loadError) {
+        console.error("Unable to load category page", loadError.message);
+
+        if (isMountedRef.current) {
+          setError(loadError.message);
+        }
+
+        return null;
+      } finally {
+        if (!isBackground && isMountedRef.current) {
+          setIsLoading(false);
+        }
+      }
+    },
+    [resolvedSlug]
+  );
 
   useEffect(() => {
-    const loadCategory = async () => {
-      try {
-        const response = await apiFetch(`/products/categories/${resolvedSlug}`);
-        setCategoryState(response);
-      } catch (error) {
-        console.error("Unable to load category page", error.message);
+    isMountedRef.current = true;
+    loadCategory();
+
+    const refreshCategory = () => {
+      loadCategory({ isBackground: true });
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refreshCategory();
       }
     };
 
-    loadCategory();
-  }, [resolvedSlug]);
+    const refreshTimerId = window.setInterval(refreshCategory, 15000);
+
+    window.addEventListener("focus", refreshCategory);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(refreshTimerId);
+      window.removeEventListener("focus", refreshCategory);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [loadCategory]);
+
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+    },
+    []
+  );
 
   const { category, breadcrumbs, childCategories, products } = categoryState;
   const isSparePartsCategory = category?.slug === "spareparts";
 
-  if (!category) {
+  if (isLoading && !category) {
     return (
       <section className="section page-hero-section">
         <div className="container empty-state">Loading category details...</div>
+      </section>
+    );
+  }
+
+  if (!category) {
+    return (
+      <section className="section page-hero-section">
+        <div className="container empty-state">
+          {error || "Category details are unavailable right now."}
+        </div>
       </section>
     );
   }
@@ -66,6 +135,8 @@ function CategoryPage() {
           <p>{category.fullDescription}</p>
         </div>
 
+        {error ? <p className="status-message error">{error}</p> : null}
+
         {isSparePartsCategory ? (
           <div className="section-top-gap">
             <div className="spareparts-inquiry-action">
@@ -87,27 +158,17 @@ function CategoryPage() {
 
             <div className="card-grid three-up">
               {childCategories.map((childCategory) => (
-                <article className="info-card" key={childCategory.slug}>
-                  <img
-                    src={childCategory.image}
-                    alt={childCategory.name}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  <div className="info-card-body">
-                    <h3>{childCategory.name}</h3>
-                    <p>{childCategory.shortDescription}</p>
-                    <Link
-                      className="btn btn-primary"
-                      to={buildCategoryPathFromBreadcrumbs(
-                        breadcrumbs,
-                        childCategory.slug
-                      )}
-                    >
-                      Open Category
-                    </Link>
-                  </div>
-                </article>
+                <CatalogEntryCard
+                  key={childCategory.slug}
+                  entry={childCategory}
+                  actions={[
+                    {
+                      to: buildCategoryPathFromBreadcrumbs(breadcrumbs, childCategory.slug),
+                      label: "Open Category",
+                      className: "btn btn-primary"
+                    }
+                  ]}
+                />
               ))}
             </div>
           </div>
@@ -122,32 +183,22 @@ function CategoryPage() {
 
             <div className="card-grid three-up">
               {products.map((product) => (
-                <article className="info-card" key={product.slug}>
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  <div className="info-card-body">
-                    <h3>{product.name}</h3>
-                    <p>{product.shortDescription}</p>
-                    <div className="button-row">
-                      <Link
-                        className="btn btn-primary"
-                        to={buildProductPathFromBreadcrumbs(breadcrumbs, product.slug)}
-                      >
-                        Open Product
-                      </Link>
-                      <Link
-                        className="btn btn-outline"
-                        to={`/quote?product=${product.slug}`}
-                      >
-                        Get Quote
-                      </Link>
-                    </div>
-                  </div>
-                </article>
+                <CatalogEntryCard
+                  key={product.slug}
+                  entry={product}
+                  actions={[
+                    {
+                      to: buildProductPathFromBreadcrumbs(breadcrumbs, product.slug),
+                      label: "Open Product",
+                      className: "btn btn-primary"
+                    },
+                    {
+                      to: `/quote?product=${product.slug}`,
+                      label: "Get Quote",
+                      className: "btn btn-outline"
+                    }
+                  ]}
+                />
               ))}
             </div>
           </div>

@@ -1184,6 +1184,59 @@ textarea {
   padding: 1rem;
 }
 
+.catalog-entry-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.catalog-entry-media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 14rem;
+  background:
+    radial-gradient(circle at top left, rgba(228, 184, 77, 0.14), transparent 28%),
+    linear-gradient(145deg, rgba(10, 28, 43, 0.08), rgba(255, 255, 255, 0.02));
+}
+
+.catalog-entry-placeholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 14rem;
+  padding: 1rem;
+  color: var(--muted);
+  text-align: center;
+  font-family: "Outfit", sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.catalog-entry-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  height: 100%;
+  gap: 0.2rem;
+}
+
+.catalog-entry-description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.catalog-entry-actions {
+  margin-top: auto;
+  width: 100%;
+}
+
+.catalog-entry-actions .btn {
+  flex: 1 1 12rem;
+}
+
 .product-range-body {
   display: flex;
   flex-direction: column;

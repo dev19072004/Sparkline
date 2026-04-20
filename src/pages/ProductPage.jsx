@@ -1,34 +1,104 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
+import CatalogEntryCard from "../components/CatalogEntryCard";
 import { apiFetch } from "../lib/api";
 import {
   buildBrochurePath,
   buildCategoryPathFromBreadcrumbs,
   buildProductPathFromBreadcrumbs
 } from "../lib/catalog";
+import { resolveAssetUrl } from "../lib/media";
 
 function ProductPage() {
   const { productSlug } = useParams();
+  const isMountedRef = useRef(true);
   const [product, setProduct] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const loadProduct = useCallback(
+    async ({ isBackground = false } = {}) => {
+      if (!isBackground) {
+        setIsLoading(true);
+      }
+
+      try {
+        const response = await apiFetch(`/products/items/${productSlug}`, {
+          cache: "no-store"
+        });
+
+        if (!isMountedRef.current) {
+          return null;
+        }
+
+        setProduct(response);
+        setError("");
+        return response;
+      } catch (loadError) {
+        console.error("Unable to load product page", loadError.message);
+
+        if (isMountedRef.current) {
+          setError(loadError.message);
+        }
+
+        return null;
+      } finally {
+        if (!isBackground && isMountedRef.current) {
+          setIsLoading(false);
+        }
+      }
+    },
+    [productSlug]
+  );
 
   useEffect(() => {
-    const loadProduct = async () => {
-      try {
-        const response = await apiFetch(`/products/items/${productSlug}`);
-        setProduct(response);
-      } catch (error) {
-        console.error("Unable to load product page", error.message);
+    isMountedRef.current = true;
+    loadProduct();
+
+    const refreshProduct = () => {
+      loadProduct({ isBackground: true });
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refreshProduct();
       }
     };
 
-    loadProduct();
-  }, [productSlug]);
+    const refreshTimerId = window.setInterval(refreshProduct, 15000);
+
+    window.addEventListener("focus", refreshProduct);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(refreshTimerId);
+      window.removeEventListener("focus", refreshProduct);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [loadProduct]);
+
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+    },
+    []
+  );
+
+  if (isLoading && !product) {
+    return (
+      <section className="section page-hero-section">
+        <div className="container empty-state">Loading product details...</div>
+      </section>
+    );
+  }
 
   if (!product) {
     return (
       <section className="section page-hero-section">
-        <div className="container empty-state">Loading product details...</div>
+        <div className="container empty-state">
+          {error || "Product details are unavailable right now."}
+        </div>
       </section>
     );
   }
@@ -58,7 +128,7 @@ function ProductPage() {
         <div className="product-detail-layout">
           <div className="product-visual-panel">
             <img
-              src={product.image}
+              src={resolveAssetUrl(product.image)}
               alt={product.name}
               decoding="async"
               fetchPriority="high"
@@ -70,6 +140,8 @@ function ProductPage() {
             <h1>{product.name}</h1>
             <p className="lead-copy">{product.shortDescription}</p>
             <p>{product.fullDescription}</p>
+
+            {error ? <p className="status-message error">{error}</p> : null}
 
             <div className="button-row">
               <Link className="btn btn-primary" to={`/quote?product=${product.slug}`}>
@@ -138,27 +210,20 @@ function ProductPage() {
 
             <div className="card-grid three-up">
               {product.relatedProducts.map((relatedProduct) => (
-                <article className="info-card" key={relatedProduct.slug}>
-                  <img
-                    src={relatedProduct.image}
-                    alt={relatedProduct.name}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  <div className="info-card-body">
-                    <h3>{relatedProduct.name}</h3>
-                    <p>{relatedProduct.shortDescription}</p>
-                    <Link
-                      className="btn btn-outline"
-                      to={buildProductPathFromBreadcrumbs(
+                <CatalogEntryCard
+                  key={relatedProduct.slug}
+                  entry={relatedProduct}
+                  actions={[
+                    {
+                      to: buildProductPathFromBreadcrumbs(
                         product.breadcrumbs,
                         relatedProduct.slug
-                      )}
-                    >
-                      Open Product
-                    </Link>
-                  </div>
-                </article>
+                      ),
+                      label: "Open Product",
+                      className: "btn btn-outline"
+                    }
+                  ]}
+                />
               ))}
             </div>
           </div>

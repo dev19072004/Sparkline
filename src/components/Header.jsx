@@ -6,31 +6,18 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { buildAuthRedirectPath } from "../lib/authRedirect";
 import { buildCatalogPath } from "../lib/catalog";
-import { getCatalogNavigation } from "../lib/navigation";
+import useCatalogNavigation from "../hooks/useCatalogNavigation";
 import { contactDetails } from "../data/siteData";
 
 function Header() {
-  const [navigation, setNavigation] = useState([]);
   const [isProductsOpen, setIsProductsOpen] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const dropdownRef = useRef(null);
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { navigation } = useCatalogNavigation();
   const machineryCategory = navigation.find((item) => item.slug === "machinery");
   const sparepartsCategory = navigation.find((item) => item.slug === "spareparts");
-
-  useEffect(() => {
-    const loadNavigation = async () => {
-      try {
-        const data = await getCatalogNavigation();
-        setNavigation(data);
-      } catch (error) {
-        console.error("Unable to load product navigation", error.message);
-      }
-    };
-
-    loadNavigation();
-  }, []);
 
   useEffect(() => {
     if (isMobileOpen) {
