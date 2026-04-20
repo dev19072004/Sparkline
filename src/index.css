@@ -355,6 +355,7 @@ textarea {
   position: sticky;
   top: 0;
   z-index: 80;
+  width: 100%;
   isolation: isolate;
   border-bottom: 1px solid rgba(8, 22, 36, 0.08);
   background: rgba(252, 248, 241, 0.96);
@@ -438,6 +439,21 @@ textarea {
   justify-content: space-between;
   gap: 1rem;
   flex: 1;
+}
+
+.desktop-nav-shell {
+  position: static;
+  inset: auto;
+  width: auto;
+  max-width: none;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
+  overflow: visible;
 }
 
 .header-nav {
@@ -2571,7 +2587,7 @@ textarea {
 
 @media (max-width: 1100px) {
   .desktop-nav-shell {
-    display: none;
+    display: none !important;
   }
 
   .header-main {
@@ -2601,7 +2617,7 @@ textarea {
     pointer-events: auto;
   }
 
-  .header-nav-shell {
+  .mobile-nav-shell {
     position: fixed;
     top: 0;
     right: 0;
@@ -2632,7 +2648,7 @@ textarea {
     padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
   }
 
-  .header-nav-shell.is-open {
+  .mobile-nav-shell.is-open {
     transform: translateX(0);
     opacity: 1;
     pointer-events: auto;
@@ -2843,7 +2859,7 @@ textarea {
     height: 2.7rem;
   }
 
-  .header-nav-shell {
+  .mobile-nav-shell {
     width: 100vw;
     padding: 1rem 0.9rem 1.1rem;
   }
@@ -3052,7 +3068,7 @@ textarea {
     width: clamp(7.9rem, 43vw, 8.9rem);
   }
 
-  .header-nav-shell {
+  .mobile-nav-shell {
     width: 100vw;
   }
 
