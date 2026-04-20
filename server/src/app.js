@@ -11,6 +11,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import accountRoutes from "./routes/accountRoutes.js";
 import galleryRoutes from "./routes/galleryRoutes.js";
+import { getSitemapXml } from "./controllers/sitemapController.js";
 import { optionalAuth } from "./middleware/authMiddleware.js";
 
 const app = express();
@@ -120,6 +121,8 @@ app.get("/", (_req, res) => {
 
   res.json({ message: "Sparkline API is running" });
 });
+
+app.get("/sitemap.xml", getSitemapXml);
 
 app.use("/api/products", productRoutes);
 app.use("/api/quotes", quoteRoutes);
