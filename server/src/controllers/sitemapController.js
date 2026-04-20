@@ -15,6 +15,8 @@ const servicePages = services.map((service) => ({
   priority: "0.7"
 }));
 
+const defaultSitemapEntries = [...staticPublicPages, ...servicePages];
+
 const escapeXml = (value = "") =>
   String(value)
     .replace(/&/g, "&amp;")
@@ -97,84 +99,102 @@ const buildXmlUrlEntry = (baseUrl, { path, lastmod = null, changefreq, priority 
   return lines.join("\n");
 };
 
+const createUrlStore = () => {
+  const publicUrls = new Map();
+
+  const addUrl = (path, details = {}) => {
+    if (!path || publicUrls.has(path)) {
+      return;
+    }
+
+    publicUrls.set(path, { path, ...details });
+  };
+
+  for (const page of defaultSitemapEntries) {
+    addUrl(page.path, page);
+  }
+
+  return { publicUrls, addUrl };
+};
+
+const addCatalogUrls = async (addUrl) => {
+  const pool = getDbPool();
+  const [categoryRows] = await pool.execute(
+    `
+      SELECT
+        id,
+        parent_id AS parentId,
+        slug,
+        updated_at AS updatedAt,
+        sort_order AS sortOrder
+      FROM catalog_categories
+      WHERE is_active = TRUE
+      ORDER BY sort_order ASC, name ASC
+    `
+  );
+
+  const [productRows] = await pool.execute(
+    `
+      SELECT
+        slug,
+        category_id AS categoryId,
+        updated_at AS updatedAt
+      FROM catalog_products
+      WHERE is_active = TRUE
+      ORDER BY updated_at DESC, name ASC
+    `
+  );
+
+  const categoryMap = new Map(categoryRows.map((category) => [category.id, category]));
+  const categoryPathCache = new Map();
+
+  for (const category of categoryRows) {
+    const categoryPathSegments = buildCategoryPathSegments(
+      category.id,
+      categoryMap,
+      categoryPathCache
+    );
+
+    if (!categoryPathSegments.length) {
+      continue;
+    }
+
+    addUrl(`/products/${categoryPathSegments.join("/")}`, {
+      lastmod: formatLastModified(category.updatedAt),
+      changefreq: "weekly",
+      priority: category.parentId ? "0.8" : "0.9"
+    });
+  }
+
+  for (const product of productRows) {
+    const categoryPathSegments = buildCategoryPathSegments(
+      product.categoryId,
+      categoryMap,
+      categoryPathCache
+    );
+
+    if (!categoryPathSegments.length) {
+      continue;
+    }
+
+    addUrl(`/products/${categoryPathSegments.join("/")}/${product.slug}`, {
+      lastmod: formatLastModified(product.updatedAt),
+      changefreq: "weekly",
+      priority: "0.8"
+    });
+  }
+};
+
 export const getSitemapXml = async (req, res) => {
   try {
-    const pool = getDbPool();
-    const [categoryRows] = await pool.execute(
-      `
-        SELECT
-          id,
-          parent_id AS parentId,
-          slug,
-          updated_at AS updatedAt,
-          sort_order AS sortOrder
-        FROM catalog_categories
-        WHERE is_active = TRUE
-        ORDER BY sort_order ASC, name ASC
-      `
-    );
+    const { publicUrls, addUrl } = createUrlStore();
+    let usedFallback = false;
 
-    const [productRows] = await pool.execute(
-      `
-        SELECT
-          slug,
-          category_id AS categoryId,
-          updated_at AS updatedAt
-        FROM catalog_products
-        WHERE is_active = TRUE
-        ORDER BY updated_at DESC, name ASC
-      `
-    );
-
-    const categoryMap = new Map(categoryRows.map((category) => [category.id, category]));
-    const categoryPathCache = new Map();
-    const publicUrls = new Map();
-    const addUrl = (path, details = {}) => {
-      if (!path || publicUrls.has(path)) {
-        return;
-      }
-
-      publicUrls.set(path, { path, ...details });
-    };
-
-    for (const page of [...staticPublicPages, ...servicePages]) {
-      addUrl(page.path, page);
-    }
-
-    for (const category of categoryRows) {
-      const categoryPathSegments = buildCategoryPathSegments(
-        category.id,
-        categoryMap,
-        categoryPathCache
-      );
-
-      if (!categoryPathSegments.length) {
-        continue;
-      }
-
-      addUrl(`/products/${categoryPathSegments.join("/")}`, {
-        lastmod: formatLastModified(category.updatedAt),
-        changefreq: "weekly",
-        priority: category.parentId ? "0.8" : "0.9"
-      });
-    }
-
-    for (const product of productRows) {
-      const categoryPathSegments = buildCategoryPathSegments(
-        product.categoryId,
-        categoryMap,
-        categoryPathCache
-      );
-
-      if (!categoryPathSegments.length) {
-        continue;
-      }
-
-      addUrl(`/products/${categoryPathSegments.join("/")}/${product.slug}`, {
-        lastmod: formatLastModified(product.updatedAt),
-        changefreq: "weekly",
-        priority: "0.8"
-      });
+    try {
+      await addCatalogUrls(addUrl);
+    } catch (error) {
+      usedFallback = true;
+      console.error("Error enriching sitemap with catalog URLs:", error.message);
     }
 
     const baseUrl = getBaseUrl(req);
@@ -187,6 +207,9 @@ export const getSitemapXml = async (req, res) => {
 
     res.set("Content-Type", "application/xml; charset=utf-8");
     res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    if (usedFallback) {
+      res.set("X-Sitemap-Fallback", "1");
+    }
     res.status(200).send(xml);
   } catch (error) {
     console.error("Error generating sitemap:", error.message);

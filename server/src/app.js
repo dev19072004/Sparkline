@@ -90,8 +90,7 @@ const isAllowedOrigin = (origin, requestHost = "") => {
   return false;
 };
 
-const requiresDatabase = (requestPath = "") =>
-  requestPath === "/sitemap.xml" || requestPath.startsWith("/api/");
+const requiresDatabase = (requestPath = "") => requestPath.startsWith("/api/");
 
 app.use(
   cors((req, callback) => {
@@ -147,14 +146,6 @@ app.use((req, res, next) => {
   const message =
     startupState.startupError ||
     "Server is starting. Please try again in a moment.";
-
-  if (req.path === "/sitemap.xml") {
-    res
-      .status(503)
-      .type("text/plain; charset=utf-8")
-      .send(message);
-    return;
-  }
 
   res.status(503).json({
     message,
