@@ -584,6 +584,75 @@ textarea {
   color: rgba(255, 255, 255, 0.72);
 }
 
+.mobile-products-panel {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+  margin-top: 0.65rem;
+  padding: 1rem;
+  border: 1px solid rgba(16, 37, 58, 0.08);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 14px 30px rgba(8, 22, 36, 0.08);
+}
+
+.mobile-products-head h3 {
+  margin: 0.55rem 0 0;
+  font-family: "Outfit", sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.3;
+  color: var(--navy-950);
+}
+
+.mobile-products-groups {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.mobile-product-group {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.95rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(16, 37, 58, 0.08);
+  background: rgba(247, 240, 228, 0.64);
+}
+
+.mobile-product-group-link {
+  font-family: "Outfit", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--navy-950);
+}
+
+.mobile-product-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.mobile-spareparts-entry {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: rgba(16, 39, 64, 0.96);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.mobile-spareparts-entry h4 {
+  margin: 0;
+  font-family: "Outfit", sans-serif;
+  font-size: 1.05rem;
+  color: var(--white);
+}
+
+.mobile-spareparts-entry p:last-child {
+  margin: 0.35rem 0 0;
+  color: rgba(255, 255, 255, 0.76);
+}
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -2641,6 +2710,10 @@ textarea {
     overflow: visible;
   }
 
+  .mobile-products-panel {
+    padding: 0.95rem;
+  }
+
   .products-mega-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2942,6 +3015,19 @@ textarea {
 
   .mega-category-card {
     padding: 0.9rem;
+  }
+
+  .mobile-products-panel {
+    gap: 0.85rem;
+    padding: 0.85rem;
+  }
+
+  .mobile-product-group {
+    padding: 0.85rem;
+  }
+
+  .mobile-product-group-link {
+    font-size: 0.95rem;
   }
 }
 

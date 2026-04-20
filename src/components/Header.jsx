@@ -81,7 +81,10 @@ function Header() {
   };
 
   const renderProductsMenu = (isMobile = false) => (
-    <div className={`products-dropdown ${isMobile ? "mobile-products-dropdown" : ""}`} ref={isMobile ? null : dropdownRef}>
+    <div
+      className={`products-dropdown ${isMobile ? "mobile-products-dropdown" : ""}`}
+      ref={isMobile ? null : dropdownRef}
+    >
       <button
         type="button"
         className="nav-link nav-link-button"
@@ -91,64 +94,123 @@ function Header() {
       </button>
 
       {isProductsOpen ? (
-        <div className={`products-mega-menu ${isMobile ? "is-mobile-drawer" : ""}`}>
-          <div className="products-mega-head">
-            <div>
+        isMobile ? (
+          <div className="mobile-products-panel">
+            <div className="mobile-products-head">
               <p className="mega-eyebrow">Catalog</p>
               <h3>Explore Machinery and Spare Parts</h3>
             </div>
-          </div>
 
-          {machineryCategory ? (
-            <div className="products-mega-grid">
-              {machineryCategory.childCategories?.map((childCategory) => (
-                <div className="mega-category-card" key={childCategory.slug}>
-                  <Link
-                    className="mega-child-link"
-                    to={buildCatalogPath(machineryCategory.slug, childCategory.slug)}
-                    onClick={closeNavigationMenus}
-                  >
-                    {childCategory.name}
-                  </Link>
+            {machineryCategory ? (
+              <div className="mobile-products-groups">
+                {machineryCategory.childCategories?.map((childCategory) => (
+                  <section className="mobile-product-group" key={childCategory.slug}>
+                    <Link
+                      className="mobile-product-group-link"
+                      to={buildCatalogPath(machineryCategory.slug, childCategory.slug)}
+                      onClick={closeNavigationMenus}
+                    >
+                      {childCategory.name}
+                    </Link>
 
-                  <div className="mega-product-links compact">
-                    {childCategory.products?.map((product) => (
-                      <Link
-                        key={product.slug}
-                        className="mega-product-pill compact"
-                        to={buildCatalogPath(
-                          machineryCategory.slug,
-                          childCategory.slug,
-                          product.slug
-                        )}
-                        onClick={closeNavigationMenus}
-                      >
-                        {product.name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          {sparepartsCategory ? (
-            <div className="mega-spareparts-row">
-              <div>
-                <p className="mega-row-label">Support Category</p>
-                <h4>{sparepartsCategory.name}</h4>
-                <p>{sparepartsCategory.shortDescription}</p>
+                    <div className="mobile-product-pills">
+                      {childCategory.products?.map((product) => (
+                        <Link
+                          key={product.slug}
+                          className="mega-product-pill compact"
+                          to={buildCatalogPath(
+                            machineryCategory.slug,
+                            childCategory.slug,
+                            product.slug
+                          )}
+                          onClick={closeNavigationMenus}
+                        >
+                          {product.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                ))}
               </div>
-              <Link
-                className="btn btn-outline btn-small"
-                to={buildCatalogPath(sparepartsCategory.slug)}
-                onClick={closeNavigationMenus}
-              >
-                Open Spareparts
-              </Link>
+            ) : null}
+
+            {sparepartsCategory ? (
+              <div className="mobile-spareparts-entry">
+                <div>
+                  <p className="mega-row-label">Support Category</p>
+                  <h4>{sparepartsCategory.name}</h4>
+                  <p>{sparepartsCategory.shortDescription}</p>
+                </div>
+                <Link
+                  className="btn btn-outline btn-small"
+                  to={buildCatalogPath(sparepartsCategory.slug)}
+                  onClick={closeNavigationMenus}
+                >
+                  Open Spareparts
+                </Link>
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <div className="products-mega-menu">
+            <div className="products-mega-head">
+              <div>
+                <p className="mega-eyebrow">Catalog</p>
+                <h3>Explore Machinery and Spare Parts</h3>
+              </div>
             </div>
-          ) : null}
-        </div>
+
+            {machineryCategory ? (
+              <div className="products-mega-grid">
+                {machineryCategory.childCategories?.map((childCategory) => (
+                  <div className="mega-category-card" key={childCategory.slug}>
+                    <Link
+                      className="mega-child-link"
+                      to={buildCatalogPath(machineryCategory.slug, childCategory.slug)}
+                      onClick={closeNavigationMenus}
+                    >
+                      {childCategory.name}
+                    </Link>
+
+                    <div className="mega-product-links compact">
+                      {childCategory.products?.map((product) => (
+                        <Link
+                          key={product.slug}
+                          className="mega-product-pill compact"
+                          to={buildCatalogPath(
+                            machineryCategory.slug,
+                            childCategory.slug,
+                            product.slug
+                          )}
+                          onClick={closeNavigationMenus}
+                        >
+                          {product.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {sparepartsCategory ? (
+              <div className="mega-spareparts-row">
+                <div>
+                  <p className="mega-row-label">Support Category</p>
+                  <h4>{sparepartsCategory.name}</h4>
+                  <p>{sparepartsCategory.shortDescription}</p>
+                </div>
+                <Link
+                  className="btn btn-outline btn-small"
+                  to={buildCatalogPath(sparepartsCategory.slug)}
+                  onClick={closeNavigationMenus}
+                >
+                  Open Spareparts
+                </Link>
+              </div>
+            ) : null}
+          </div>
+        )
       ) : null}
     </div>
   );
