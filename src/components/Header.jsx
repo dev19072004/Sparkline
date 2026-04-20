@@ -295,7 +295,7 @@ function Header() {
   );
 
   const mobileNavigationOverlay =
-    typeof document !== "undefined"
+    isMobileOpen && typeof document !== "undefined"
       ? createPortal(
           <>
             <button
