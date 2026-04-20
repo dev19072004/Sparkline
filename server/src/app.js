@@ -23,6 +23,20 @@ const publicDirectoryPath = path.join(projectRoot, "public");
 const clientIndexFilePath = path.join(clientBuildDirectoryPath, "index.html");
 const hasClientBuild = () => fs.existsSync(clientIndexFilePath);
 
+const normalizeHostname = (value = "") =>
+  String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/^www\./, "");
+
+const parseOrigin = (value = "") => {
+  try {
+    return new URL(value);
+  } catch {
+    return null;
+  }
+};
+
 const allowedOrigins = [
   process.env.FRONTEND_URL || "",
   process.env.APP_BASE_URL || ""
@@ -32,16 +46,61 @@ const allowedOrigins = [
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
-        callback(null, true);
-        return;
-      }
+const allowedOriginSet = new Set(
+  allowedOrigins.map((origin) => {
+    const parsedOrigin = parseOrigin(origin);
+    return parsedOrigin ? parsedOrigin.origin : origin.replace(/\/$/, "");
+  })
+);
 
-      callback(new Error("Origin not allowed by CORS"));
-    }
+const allowedHostnames = new Set(
+  allowedOrigins
+    .map((origin) => parseOrigin(origin)?.hostname || "")
+    .map((hostname) => normalizeHostname(hostname))
+    .filter(Boolean)
+);
+
+const isAllowedOrigin = (origin, requestHost = "") => {
+  if (!origin) {
+    return true;
+  }
+
+  const parsedOrigin = parseOrigin(origin);
+  const normalizedOrigin = parsedOrigin ? parsedOrigin.origin : origin.replace(/\/$/, "");
+  const originHostname = normalizeHostname(parsedOrigin?.hostname || "");
+  const requestHostname = normalizeHostname(String(requestHost).split(":")[0]);
+
+  if (allowedOriginSet.has(normalizedOrigin)) {
+    return true;
+  }
+
+  if (originHostname && allowedHostnames.has(originHostname)) {
+    return true;
+  }
+
+  if (originHostname && requestHostname && originHostname === requestHostname) {
+    return true;
+  }
+
+  if (originHostname.endsWith(".hostingersite.com")) {
+    return true;
+  }
+
+  return false;
+};
+
+app.use(
+  cors((req, callback) => {
+    const requestOrigin = req.header("Origin") || "";
+    const requestHost = req.header("Host") || "";
+
+    callback(
+      null,
+      {
+        origin: isAllowedOrigin(requestOrigin, requestHost),
+        optionsSuccessStatus: 204
+      }
+    );
   })
 );
 app.use(express.json({ limit: "200mb" }));
