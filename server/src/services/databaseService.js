@@ -330,7 +330,7 @@ const upsertStaffAccount = async (pool, account) => {
 
 export const seedStaffAccounts = async (pool) => {
   const ownerEmail =
-    process.env.OWNER_EMAIL || process.env.ADMIN_EMAIL || "devanshuverma72@gmail.com";
+    process.env.OWNER_EMAIL || process.env.ADMIN_EMAIL || "devanshuverma72@gmil.com";
   const ownerPassword =
     process.env.OWNER_PASSWORD || process.env.ADMIN_PASSWORD || "Dev@1907";
 

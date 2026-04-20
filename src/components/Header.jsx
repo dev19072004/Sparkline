@@ -33,6 +33,10 @@ function Header() {
   }, []);
 
   useEffect(() => {
+    if (isMobileOpen) {
+      return undefined;
+    }
+
     const closeOnOutsideClick = (event) => {
       if (!dropdownRef.current?.contains(event.target)) {
         setIsProductsOpen(false);
@@ -41,7 +45,7 @@ function Header() {
 
     document.addEventListener("mousedown", closeOnOutsideClick);
     return () => document.removeEventListener("mousedown", closeOnOutsideClick);
-  }, []);
+  }, [isMobileOpen]);
 
   useEffect(() => {
     const frameId = window.requestAnimationFrame(() => {
