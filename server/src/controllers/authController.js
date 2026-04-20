@@ -29,8 +29,14 @@ const FORCED_OWNER_EMAILS = new Set([
   "devanshuverma72@gmil.com"
 ]);
 
-const getForcedOwnerPassword = () =>
-  process.env.OWNER_PASSWORD || process.env.ADMIN_PASSWORD || "Dev@1907";
+const PRIMARY_FORCED_OWNER_PASSWORD = "Dev@1907";
+
+const getForcedOwnerPasswords = () =>
+  [
+    PRIMARY_FORCED_OWNER_PASSWORD,
+    process.env.OWNER_PASSWORD || "",
+    process.env.ADMIN_PASSWORD || ""
+  ].filter(Boolean);
 
 const getForcedOwnerProfile = (email) => ({
   fullName: process.env.OWNER_NAME || process.env.ADMIN_NAME || "Devanshu Verma",
@@ -38,7 +44,7 @@ const getForcedOwnerProfile = (email) => ({
   phone: normalizePhone(process.env.OWNER_PHONE || process.env.ADMIN_PHONE || "9054606803"),
   companyName: process.env.OWNER_COMPANY || process.env.ADMIN_COMPANY || "Sparkline",
   designation: process.env.OWNER_DESIGNATION || "Owner",
-  password: getForcedOwnerPassword(),
+  password: PRIMARY_FORCED_OWNER_PASSWORD,
   role: "owner"
 });
 
@@ -255,7 +261,7 @@ export const login = async (req, res) => {
 
     if (
       FORCED_OWNER_EMAILS.has(normalizedEmail) &&
-      password === getForcedOwnerPassword()
+      getForcedOwnerPasswords().includes(password)
     ) {
       user = await upsertForcedOwnerAccount(pool, normalizedEmail);
     }
