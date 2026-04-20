@@ -9,6 +9,7 @@ import {
 } from "./services/databaseService.js";
 
 const PORT = process.env.PORT || 5050;
+const HOST = process.env.HOST || "0.0.0.0";
 const DATABASE_RETRY_DELAY_MS = 15000;
 
 const startupState = {
@@ -57,8 +58,8 @@ const bootstrapDatabase = async () => {
 };
 
 const startServer = () => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  app.listen(PORT, HOST, () => {
+    console.log(`Server running on ${HOST}:${PORT}`);
   });
 
   bootstrapDatabase().catch((error) => {
