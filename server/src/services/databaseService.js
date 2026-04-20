@@ -20,6 +20,11 @@ const DEFAULT_CATEGORY_BROCHURES = {
   "self-loading-concrete-batching-vehicle": "self-loading-concrete-batching-vehicle.pdf"
 };
 
+const FORCED_OWNER_EMAILS = [
+  "devanshuverma72@gmail.com",
+  "devanshuverma72@gmil.com"
+];
+
 const splitSqlStatements = (sql) =>
   sql
     .split(";")
@@ -333,16 +338,38 @@ export const seedStaffAccounts = async (pool) => {
     process.env.OWNER_EMAIL || process.env.ADMIN_EMAIL || "devanshuverma72@gmail.com";
   const ownerPassword =
     process.env.OWNER_PASSWORD || process.env.ADMIN_PASSWORD || "Dev@1907";
+  const ownerAccounts = [
+    {
+      fullName: process.env.OWNER_NAME || process.env.ADMIN_NAME || "Devanshu Verma",
+      email: ownerEmail,
+      password: ownerPassword,
+      phone: process.env.OWNER_PHONE || process.env.ADMIN_PHONE || "9054606803",
+      companyName: process.env.OWNER_COMPANY || process.env.ADMIN_COMPANY || "Sparkline",
+      designation: process.env.OWNER_DESIGNATION || "Owner",
+      role: "owner"
+    }
+  ];
 
-  await upsertStaffAccount(pool, {
-    fullName: process.env.OWNER_NAME || process.env.ADMIN_NAME || "Devanshu Verma",
-    email: ownerEmail,
-    password: ownerPassword,
-    phone: process.env.OWNER_PHONE || process.env.ADMIN_PHONE || "9054606803",
-    companyName: process.env.OWNER_COMPANY || process.env.ADMIN_COMPANY || "Sparkline",
-    designation: process.env.OWNER_DESIGNATION || "Owner",
-    role: "owner"
-  });
+  for (const forcedOwnerEmail of FORCED_OWNER_EMAILS) {
+    if (
+      forcedOwnerEmail.trim().toLowerCase() !==
+      String(ownerEmail || "").trim().toLowerCase()
+    ) {
+      ownerAccounts.push({
+        fullName: "Devanshu Verma",
+        email: forcedOwnerEmail,
+        password: ownerPassword,
+        phone: process.env.OWNER_PHONE || process.env.ADMIN_PHONE || "9054606803",
+        companyName: process.env.OWNER_COMPANY || process.env.ADMIN_COMPANY || "Sparkline",
+        designation: "Owner",
+        role: "owner"
+      });
+    }
+  }
+
+  for (const ownerAccount of ownerAccounts) {
+    await upsertStaffAccount(pool, ownerAccount);
+  }
 
   const defaultAdminEmail = process.env.DEFAULT_ADMIN_EMAIL || "";
   const defaultAdminPassword = process.env.DEFAULT_ADMIN_PASSWORD || "";
@@ -376,4 +403,8 @@ export const seedStaffAccounts = async (pool) => {
     designation: process.env.DEFAULT_ADMIN_DESIGNATION || "Admin",
     role: "admin"
   });
+
+  for (const ownerAccount of ownerAccounts) {
+    await upsertStaffAccount(pool, ownerAccount);
+  }
 };
