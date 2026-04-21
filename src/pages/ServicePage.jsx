@@ -1,10 +1,20 @@
 import { Link, useParams } from "react-router-dom";
 
 import { services } from "../data/siteData";
+import { usePageSeo } from "../hooks/usePageSeo";
 
 function ServicePage() {
   const { serviceSlug } = useParams();
   const service = services.find((entry) => entry.slug === serviceSlug);
+
+  usePageSeo(
+    service
+      ? {
+          title: `${service.title} | Sparkline Services`,
+          description: service.summary || service.description
+        }
+      : {}
+  );
 
   if (!service) {
     return (

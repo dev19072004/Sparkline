@@ -99,6 +99,28 @@ const buildXmlUrlEntry = (baseUrl, { path, lastmod = null, changefreq, priority 
   return lines.join("\n");
 };
 
+const buildSitemapXml = (baseUrl, entries) =>
+  [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...entries.map((entry) => buildXmlUrlEntry(baseUrl, entry)),
+    "</urlset>"
+  ].join("\n");
+
+const sendSitemapXml = (res, xml, usedFallback = false) => {
+  res.set("Content-Type", "application/xml; charset=utf-8");
+  res.set(
+    "Cache-Control",
+    "public, max-age=300, s-maxage=300, stale-while-revalidate=86400"
+  );
+
+  if (usedFallback) {
+    res.set("X-Sitemap-Fallback", "1");
+  }
+
+  res.status(200).send(xml);
+};
+
 const createUrlStore = () => {
   const publicUrls = new Map();
 
@@ -186,10 +208,10 @@ const addCatalogUrls = async (addUrl) => {
 };
 
 export const getSitemapXml = async (req, res) => {
-  try {
-    const { publicUrls, addUrl } = createUrlStore();
-    let usedFallback = false;
+  const { publicUrls, addUrl } = createUrlStore();
+  let usedFallback = false;
 
+  try {
     try {
       await addCatalogUrls(addUrl);
     } catch (error) {
@@ -198,21 +220,20 @@ export const getSitemapXml = async (req, res) => {
     }
 
     const baseUrl = getBaseUrl(req);
-    const xml = [
-      '<?xml version="1.0" encoding="UTF-8"?>',
-      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-      ...Array.from(publicUrls.values()).map((entry) => buildXmlUrlEntry(baseUrl, entry)),
-      "</urlset>"
-    ].join("\n");
+    const xml = buildSitemapXml(baseUrl, Array.from(publicUrls.values()));
 
-    res.set("Content-Type", "application/xml; charset=utf-8");
-    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    if (usedFallback) {
-      res.set("X-Sitemap-Fallback", "1");
-    }
-    res.status(200).send(xml);
+    sendSitemapXml(res, xml, usedFallback);
   } catch (error) {
     console.error("Error generating sitemap:", error.message);
-    res.status(500).json({ message: "Failed to generate sitemap" });
+
+    const fallbackBaseUrl =
+      normalizeBaseUrl(process.env.APP_BASE_URL || process.env.FRONTEND_URL || "") ||
+      "https://sparklineindia.com";
+    const fallbackXml = buildSitemapXml(
+      fallbackBaseUrl,
+      Array.from(publicUrls.values())
+    );
+
+    sendSitemapXml(res, fallbackXml, true);
   }
 };

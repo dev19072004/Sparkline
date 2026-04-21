@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 
 import CatalogEntryCard from "../components/CatalogEntryCard";
 import { apiFetch } from "../lib/api";
+import { usePageSeo, toAbsoluteSeoUrl } from "../hooks/usePageSeo";
 import {
   buildBrochurePath,
   buildCategoryPathFromBreadcrumbs,
@@ -83,6 +84,62 @@ function ProductPage() {
       isMountedRef.current = false;
     },
     []
+  );
+
+  const productImagePath = product ? resolveAssetUrl(product.image) : "";
+  const productDescription =
+    product?.shortDescription ||
+    product?.fullDescription ||
+    "Explore this Sparkline construction machinery product.";
+  const breadcrumbStructuredData = product
+    ? {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          ...product.breadcrumbs.map((crumb, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            name: crumb.name,
+            item: toAbsoluteSeoUrl(
+              buildCategoryPathFromBreadcrumbs(product.breadcrumbs.slice(0, index), crumb.slug)
+            )
+          })),
+          {
+            "@type": "ListItem",
+            position: product.breadcrumbs.length + 1,
+            name: product.name,
+            item: toAbsoluteSeoUrl(
+              buildProductPathFromBreadcrumbs(product.breadcrumbs, product.slug)
+            )
+          }
+        ]
+      }
+    : null;
+  const productStructuredData = product
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: product.name,
+        description: productDescription,
+        image: productImagePath ? [toAbsoluteSeoUrl(productImagePath)] : undefined,
+        brand: {
+          "@type": "Brand",
+          name: "Sparkline"
+        },
+        category: product.breadcrumbs[product.breadcrumbs.length - 1]?.name,
+        url: toAbsoluteSeoUrl(buildProductPathFromBreadcrumbs(product.breadcrumbs, product.slug))
+      }
+    : null;
+
+  usePageSeo(
+    product
+      ? {
+          title: `${product.name} | Sparkline`,
+          description: productDescription,
+          image: productImagePath,
+          structuredData: [breadcrumbStructuredData, productStructuredData]
+        }
+      : {}
   );
 
   if (isLoading && !product) {

@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Routes, Route, useLocation } from "react-route
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import BrochureModal from "./components/BrochureModal";
+import { useDefaultSeo } from "./hooks/usePageSeo";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
 const QuotePage = lazy(() => import("./pages/QuotePage"));
@@ -36,6 +37,11 @@ function ScrollManager() {
     window.scrollTo({ top: 0 });
   }, [location.hash, location.pathname]);
 
+  return null;
+}
+
+function RouteSeoDefaults() {
+  useDefaultSeo();
   return null;
 }
 
@@ -73,6 +79,7 @@ function AppShell() {
   return (
     <>
       <ScrollManager />
+      <RouteSeoDefaults />
       <Header />
       <main className="site-main">
         <Suspense

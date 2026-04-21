@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import CatalogEntryCard from "../components/CatalogEntryCard";
+import { usePageSeo, toAbsoluteSeoUrl } from "../hooks/usePageSeo";
 import { apiFetch } from "../lib/api";
 import {
   buildCategoryPathFromBreadcrumbs,
@@ -92,6 +93,50 @@ function CategoryPage() {
 
   const { category, breadcrumbs, childCategories, products } = categoryState;
   const isSparePartsCategory = category?.slug === "spareparts";
+  const categoryTitle = category ? `${category.name} | Sparkline` : undefined;
+  const categoryDescription =
+    category?.shortDescription ||
+    category?.fullDescription ||
+    "Explore Sparkline construction machinery and spare parts categories.";
+  const breadcrumbStructuredData = category
+    ? {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: breadcrumbs.map((crumb, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: crumb.name,
+          item: toAbsoluteSeoUrl(
+            buildCategoryPathFromBreadcrumbs(breadcrumbs.slice(0, index), crumb.slug)
+          )
+        }))
+      }
+    : null;
+  const collectionStructuredData = category
+    ? {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: category.name,
+        description: categoryDescription,
+        url: toAbsoluteSeoUrl(
+          buildCategoryPathFromBreadcrumbs(
+            breadcrumbs.slice(0, Math.max(breadcrumbs.length - 1, 0)),
+            category.slug
+          )
+        )
+      }
+    : null;
+
+  usePageSeo(
+    category
+      ? {
+          title: categoryTitle,
+          description: categoryDescription,
+          image: category.image,
+          structuredData: [breadcrumbStructuredData, collectionStructuredData]
+        }
+      : {}
+  );
 
   if (isLoading && !category) {
     return (
